@@ -1,33 +1,48 @@
 import { Request, Response } from 'express'
 import { AppDataSource } from '../config/data-source'
 import { Station } from '../models/Station'
+import { Between, ILike } from 'typeorm'
 
-/**
- * Retrieves key metrics about charging stations.
- */
-export const getMetrics = async (_req: Request, res: Response) => {
-  const repo = AppDataSource.getRepository(Station)
+export const getMetrics = async (req: Request, res: Response) => {
+  try {
+    const { status, location, from, to } = req.query
 
-  // Count total number of stations
-  const total = await repo.count()
+    const where: any = {}
 
-  // Count stations with 'active' status
-  const active = await repo.count({ where: { status: 'active' } })
+    // Filter by station status
+    if (status) {
+      where.status = status
+    }
 
-  // Calculate number of inactive stations
-  const inactive = total - active
+    // Filter by location using case-insensitive LIKE
+    if (location) {
+      where.location = ILike(`%${location}%`)
+    }
 
-  // Calculate average maxCapacityKW across all stations
-  const { avg } = await repo
-    .createQueryBuilder('station')
-    .select('AVG(station.maxCapacityKW)', 'avg')
-    .getRawOne()
+    // Filter by creation date range
+    if (from || to) {
+      const fromDate = from ? new Date(from as string) : new Date('1970-01-01')
+      const toDate = to ? new Date(to as string) : new Date()
+      where.createdAt = Between(fromDate, toDate)
+    }
 
-  // Return metrics as a JSON response
-  return res.json({
-    totalStations: total,
-    activeStations: active,
-    inactiveStations: inactive,
-    avgCapacity: parseFloat(avg) || 0
-  })
+    const stationRepo = AppDataSource.getRepository(Station)
+    const stations = await stationRepo.find({ where })
+
+    const totalStations = stations.length
+    const activeStations = stations.filter((s) => s.status === 'active').length
+    const inactiveStations = stations.filter((s) => s.status === 'inactive').length
+    const avgCapacity =
+      stations.reduce((sum, s) => sum + s.maxCapacityKW, 0) / (stations.length || 1)
+
+    res.status(200).json({
+      totalStations,
+      activeStations,
+      inactiveStations,
+      avgCapacity: Number(avgCapacity.toFixed(2))
+    })
+  } catch (error) {
+    console.error(error)
+    res.status(500).json({ message: 'Error retrieving metrics' })
+  }
 }

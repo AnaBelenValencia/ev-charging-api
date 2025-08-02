@@ -10,5 +10,6 @@
     "emitDecoratorMetadata": true,
     "strict": true,
     "skipLibCheck": true
-  }
+  },
+  "include": ["src"]
 }

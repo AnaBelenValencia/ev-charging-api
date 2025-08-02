@@ -49,6 +49,28 @@ export const stationRoutes = Router()
  *     tags: [Stations]
  *     security:
  *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *           enum: [active, inactive]
+ *         description: Filter by station status
+ *       - in: query
+ *         name: location
+ *         schema:
+ *           type: string
+ *         description: Filter by location (partial match)
+ *       - in: query
+ *         name: minCapacity
+ *         schema:
+ *           type: number
+ *         description: Minimum capacity in kW
+ *       - in: query
+ *         name: maxCapacity
+ *         schema:
+ *           type: number
+ *         description: Maximum capacity in kW
  *     responses:
  *       200:
  *         description: List of stations

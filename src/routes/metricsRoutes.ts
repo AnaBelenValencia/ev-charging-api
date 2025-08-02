@@ -18,9 +18,33 @@ export const metricsRoutes = Router()
  *     tags: [Metrics]
  *     security:
  *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *           enum: [active, inactive]
+ *         description: Filter stations by status
+ *       - in: query
+ *         name: location
+ *         schema:
+ *           type: string
+ *         description: Filter stations by location
+ *       - in: query
+ *         name: from
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Start date (inclusive)
+ *       - in: query
+ *         name: to
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: End date (inclusive)
  *     responses:
  *       200:
- *         description: Metrics retrieved successfully
+ *         description: Aggregated metrics
  *         content:
  *           application/json:
  *             schema:

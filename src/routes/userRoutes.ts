@@ -1,7 +1,9 @@
 import { Router } from 'express'
 import { register, login } from '../controllers/authController'
-import { getProfile } from '../controllers/userController'
+import { getProfile, getUsers } from '../controllers/userController'
 import { authMiddleware } from '../middlewares/authMiddleware'
+import { checkRole } from '../middlewares/checkRole'
+import { UserRole } from '../utils/types'
 
 export const userRoutes = Router()
 
@@ -25,6 +27,9 @@ export const userRoutes = Router()
  *           type: string
  *         email:
  *           type: string
+ *         role:
+ *           type: string
+ *           enum: [admin, station_manager]
  *
  *     RegisterInput:
  *       type: object
@@ -32,6 +37,7 @@ export const userRoutes = Router()
  *         - name
  *         - email
  *         - password
+ *         - role
  *       properties:
  *         name:
  *           type: string
@@ -39,6 +45,9 @@ export const userRoutes = Router()
  *         email:
  *           type: string
  *           example: ana@example.com
+ *         role:
+ *           type: string
+ *           enum: [admin, station_manager]
  *         password:
  *           type: string
  *           example: supersecret123
@@ -75,7 +84,7 @@ export const userRoutes = Router()
  *       400:
  *         description: Email already in use
  */
-userRoutes.post('/register', register)
+userRoutes.post('/register', authMiddleware, checkRole(UserRole.ADMIN), register);
 
 /**
  * @swagger
@@ -103,7 +112,7 @@ userRoutes.post('/register', register)
  *       401:
  *         description: Invalid credentials
  */
-userRoutes.post('/login', login)
+userRoutes.post('/login', login);
 
 /**
  * @swagger
@@ -121,4 +130,40 @@ userRoutes.post('/login', login)
  *       401:
  *         description: Unauthorized
  */
-userRoutes.get('/profile', authMiddleware, getProfile)
+userRoutes.get('/profile', authMiddleware, getProfile);
+
+/**
+ * @swagger
+ * /users:
+ *   get:
+ *     summary: Get list of all users (admin only)
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of users
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: number
+ *                   email:
+ *                     type: string
+ *                   role:
+ *                     type: string
+ *                     enum: [admin, station_manager]
+ *                   createdAt:
+ *                     type: string
+ *                     format: date-time
+ *       403:
+ *         description: Forbidden
+ *       401:
+ *         description: Unauthorized
+ */
+
+userRoutes.get('/', authMiddleware, checkRole(UserRole.ADMIN), getUsers)

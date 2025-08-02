@@ -67,13 +67,43 @@ http://localhost:3000/api/docs
 | Method | Endpoint                   | Description                 |
 | ------ | -------------------------- | --------------------------- |
 | POST   | `/api/stations`            | Create new charging station |
-| GET    | `/api/stations`            | Get list of all stations    |
+| GET    | `/api/stations`            | Get list of stations (supports filters by status, location, capacity) |
 | PATCH  | `/api/stations/:id/status` | Toggle station status       |
+
+#### Station Filters
+
+You can pass query parameters to filter stations:
+
+- `status`: `active` or `inactive`
+- `location`: Partial match on location string
+- `minCapacity`: Minimum capacity in kW
+- `maxCapacity`: Maximum capacity in kW
+
+Example:
+
+```http
+GET /api/stations?status=active&location=CDMX&minCapacity=30&maxCapacity=100
+```
 
 ### Metrics
 | Method | Endpoint       | Description                     |
 | ------ | -------------- | ------------------------------- |
 | GET    | `/api/metrics` | Returns station metrics summary |
+
+#### Metrics Filters
+
+The `/api/metrics` endpoint supports the following filters:
+
+- `status`: `active` or `inactive`
+- `location`: Partial location match
+- `from`: ISO date string (filter by createdAt >=)
+- `to`: ISO date string (filter by createdAt <=)
+
+Example:
+
+```http
+GET /api/metrics?status=active&location=CDMX&from=2025-07-01&to=2025-08-01
+```
 
 ## Testing
 1. Run tests
